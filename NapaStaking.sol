@@ -4,10 +4,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./NAPA.sol";
+import "./NapaReward.sol";
 
-contract NapaStaking  is Context, Ownable{
 
-    IERC20 immutable private token;
+contract NapaStaking  is Context, Ownable,NapaReward{
+
+    NAPA immutable private token;
     uint256 public totalStaked;
     // mapping(uint=>uint) public packages;
   
@@ -32,7 +35,7 @@ contract NapaStaking  is Context, Ownable{
 
     constructor(address token_) public {
         require(token_ != address(0x0));
-        token = IERC20(token_);
+        token = NAPA(token_);
         packages[0]=30;
         packages[1]=60;
         packages[2]=90;
@@ -66,6 +69,8 @@ contract NapaStaking  is Context, Ownable{
         require(wUser.amount > 0, "deposit first");
         require(block.timestamp > wUser.startTime && block.timestamp<wUser.endTime, "Token locked");
         uint reward=_claim();
+        rewardTotal-=reward;
+        require(rewardTotal>0,"not suffiecint rewards available");
         token.transfer(_msgSender(),wUser.amount+reward);
 
         deposit[_msgSender()] = User(0, 0 , 0, 0);
