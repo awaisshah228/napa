@@ -92,8 +92,9 @@ contract NapaStaking  is Context, Ownable{
         if(_reward<10**12){
             _reward=10**12;
         }
+        
+        
         emit Claim(_msgSender() , _reward); 
-
         return _reward;
      
 
