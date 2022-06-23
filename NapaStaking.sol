@@ -49,7 +49,7 @@ contract NapaStaking  is Context, Ownable{
 
       function stakeTokens(uint256 _amount, uint256 _plan) public {
         require(token.balanceOf(_msgSender())>=_amount, "you do not have sufficient balance");
-        // require(token.allowance(_msgSender(), address(this))>=_amount, "Tokens not approved");
+        require(token.allowance(_msgSender(), address(this))>=_amount, "Tokens not approved");
         require(plan[_plan], "select correct tier");
         User memory wUser = deposit[_msgSender()];
         require(wUser.amount == 0, "Already Staked");
