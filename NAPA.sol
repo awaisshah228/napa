@@ -7,7 +7,6 @@ import "./SafeMath.sol";
 import "./IUniswapV2Router02.sol";
 import "./IUniswapV2Factory.sol";
 import "./IUniswapV2Pair.sol";
-import "./NapaReward.sol";
 
 contract NAPA is ERC20, Ownable {
     using SafeMath for uint256;
