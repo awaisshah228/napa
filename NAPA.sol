@@ -54,11 +54,11 @@ contract NAPA is ERC20, Ownable {
         uniswapRouter = _uniswapRouter;
         uniswapPair = _addressForPancakePair;
 
-        initialSupply = 1000000000 * (10 ** 18);
+        uint256 initialSupply = 1000000000 * (10 ** 18);
 
-        _mint(owner(), initialSupply);
+        _mint(owner(), initialSupply.mul(90).div(100));
 
-        _mint(treasuryWallet, totalSupply().mul(10).div(100));
+        _mint(treasuryWallet, initialSupply.mul(10).div(100));
     }
 
     function updateUniSwapRouter(address newAddress) public onlyOwner {
@@ -131,7 +131,7 @@ contract NAPA is ERC20, Ownable {
 
             super._transfer(from, treasuryWallet, sellingFee);
         }
-    }
 
-    super._transfer(from, to, amount);
+        super._transfer(from, to, amount);
+    }
 }
