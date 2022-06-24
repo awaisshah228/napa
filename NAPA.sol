@@ -54,6 +54,8 @@ contract NAPA is ERC20, Ownable {
         uniswapRouter = _uniswapRouter;
         uniswapPair = _addressForPancakePair;
 
+        treasuryWallet = address(0x49A61ba8E25FBd58cE9B30E1276c4Eb41dD80a80);
+
         uint256 initialSupply = 1000000000 * (10 ** 18);
 
         _mint(owner(), initialSupply.mul(90).div(100));
