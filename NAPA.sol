@@ -46,7 +46,7 @@ contract NAPA is ERC20, Ownable {
 
     constructor() ERC20("NAPA Society", "NAPA") {
         // TODO change
-        BUSD = 0x7D9385C733a967793EE14D933212ee44025f1B9d;
+        BUSD = 0x59f78fB97FB36adbaDCbB43Fa9031797faAad54A;
 
         IUniswapV2Router02 _uniswapRouter = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
         address _addressForPancakePair = IUniswapV2Factory(_uniswapRouter.factory()).getPair(address(this), BUSD);
