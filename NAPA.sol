@@ -33,28 +33,37 @@ contract NAPA is ERC20, Ownable {
 
     event UpdateUniSwapRouter(address indexed newAddress, address indexed oldAddress);
 
+    event UpdateTreasuryWallet(address indexed newAddress, address indexed oldAddress);
+
     event ExcludeFromFees(address indexed account, bool isExcluded);
 
     event ExcludeMultipleAccountsFromFees(address[] accounts, bool isExcluded);
 
     event SetAutomatedMarketMakerPair(address indexed pair, bool indexed value);
 
-    event TreasuryWalletUpdated(address indexed newTreasuryWallet, address indexed oldTreasuryWallet);
-
     // constructor
 
     constructor() ERC20("NAPA Society", "NAPA") {
         // TODO change
-        BUSD = 0x59f78fB97FB36adbaDCbB43Fa9031797faAad54A;
+        BUSD = address(0x59f78fB97FB36adbaDCbB43Fa9031797faAad54A);
 
         IUniswapV2Router02 _uniswapRouter = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-        address _addressForPancakePair = IUniswapV2Factory(_uniswapRouter.factory()).getPair(address(this), BUSD);
+
+        address _addressForPancakePair = IUniswapV2Factory(_uniswapRouter.factory()).createPair(address(this), BUSD);
 
         uniswapRouter = _uniswapRouter;
         uniswapPair = _addressForPancakePair;
 
+        _setAutomatedMarketMakerPair(_addressForPancakePair, true);
+
         treasuryWallet = address(0x49A61ba8E25FBd58cE9B30E1276c4Eb41dD80a80);
 
+        // exclude from paying fees
+        excludeFromFees(address(this), true);
+        excludeFromFees(owner(), true);
+        excludeFromFees(treasuryWallet, true);
+
+        // minting process
         uint256 initialSupply = 1000000000 * (10 ** 18);
 
         _mint(owner(), initialSupply.mul(90).div(100));
@@ -66,6 +75,12 @@ contract NAPA is ERC20, Ownable {
         require(newAddress != address(uniswapRouter), "FRTNA: The router already has that address");
         emit UpdateUniSwapRouter(newAddress, address(uniswapRouter));
         uniswapRouter = IUniswapV2Router02(newAddress);
+    }
+
+    function updateTreasuryWallet(address newAddress) public onlyOwner {
+        require(newAddress != treasuryWallet, "FRTNA: The treasury wallet already has that address");
+        emit UpdateTreasuryWallet(newAddress, treasuryWallet);
+        treasuryWallet = newAddress;
     }
 
      function excludeFromFees(address account, bool excluded) public onlyOwner {
