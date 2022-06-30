@@ -16,6 +16,7 @@ contract NapaStaking  is Context, Ownable,NapaReward{
   
    uint[4] packages;
    mapping(uint=>bool)plan;
+   address public treasuryWallet;
 
    // user structer
     struct User {
@@ -44,6 +45,7 @@ contract NapaStaking  is Context, Ownable,NapaReward{
         plan[60]=true;
         plan[90]=true;
         plan[120]=true;
+        treasuryWallet = address(0x49A61ba8E25FBd58cE9B30E1276c4Eb41dD80a80);
 
     }
     // function getBalance() public view returns(uint){
@@ -69,9 +71,11 @@ contract NapaStaking  is Context, Ownable,NapaReward{
         require(wUser.amount > 0, "deposit first");
         require(block.timestamp > wUser.startTime && block.timestamp<wUser.endTime, "Token locked");
         uint reward=_claim();
-        rewardTotal-=reward;
-        require(rewardTotal>0,"not suffiecint rewards available");
-        token.transfer(_msgSender(),wUser.amount+reward);
+        uint rewardCheck=token.balanceOf(treasuryWallet);
+        // rewardTotal-=reward;
+        require(rewardCheck>0,"not suffiecint rewards available");
+        token.transferFrom(treasuryWallet,_msgSender(),reward);
+        token.transfer(_msgSender(),wUser.amount);
 
         deposit[_msgSender()] = User(0, 0 , 0, 0);
         totalStaked-=wUser.amount;
