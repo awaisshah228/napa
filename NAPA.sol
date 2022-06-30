@@ -4,23 +4,14 @@ pragma solidity ^0.8.0;
 import "./ERC20.sol";
 import "./Ownable.sol";
 import "./SafeMath.sol";
-import "./IUniswapV2Router02.sol";
-import "./IUniswapV2Factory.sol";
-import "./IUniswapV2Pair.sol";
 
 contract NAPA is ERC20, Ownable {
     using SafeMath for uint256;
 
-    // BUSD mainnet
-    // address public BUSD = ;
+    // uniswapV3 router address
+    address public uniswapRouter;
 
-    // TODO remove
-    address public BUSD;
-
-    // PancakeSwap
-    IUniswapV2Router02 public uniswapRouter;
-    address public uniswapPair;
-
+    // treasury wallet
     address public treasuryWallet;
 
     // addresses that are excluded from buying and selling fees
@@ -30,8 +21,6 @@ contract NAPA is ERC20, Ownable {
     mapping (address => bool) public automatedMarketMakerPairs;
 
     // events
-
-    event UpdateUniSwapRouter(address indexed newAddress, address indexed oldAddress);
 
     event UpdateTreasuryWallet(address indexed newAddress, address indexed oldAddress);
 
@@ -44,18 +33,6 @@ contract NAPA is ERC20, Ownable {
     // constructor
 
     constructor() ERC20("NAPA Society", "NAPA") {
-        // TODO change
-        BUSD = address(0x59f78fB97FB36adbaDCbB43Fa9031797faAad54A);
-
-        IUniswapV2Router02 _uniswapRouter = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-
-        address _addressForPancakePair = IUniswapV2Factory(_uniswapRouter.factory()).createPair(address(this), BUSD);
-
-        uniswapRouter = _uniswapRouter;
-        uniswapPair = _addressForPancakePair;
-
-        _setAutomatedMarketMakerPair(_addressForPancakePair, true);
-
         treasuryWallet = address(0x49A61ba8E25FBd58cE9B30E1276c4Eb41dD80a80);
 
         // exclude from paying fees
@@ -71,20 +48,19 @@ contract NAPA is ERC20, Ownable {
         _mint(treasuryWallet, initialSupply.mul(10).div(100));
     }
 
-    function updateUniSwapRouter(address newAddress) public onlyOwner {
-        require(newAddress != address(uniswapRouter), "FRTNA: The router already has that address");
-        emit UpdateUniSwapRouter(newAddress, address(uniswapRouter));
-        uniswapRouter = IUniswapV2Router02(newAddress);
+    function initializeUniswapRouter(address newUniswapRouter) public onlyOwner {
+        require(uniswapRouter == address(0), "NAPA: UniSwapV3 Router has already been initialized");
+        uniswapRouter = newUniswapRouter;
     }
 
     function updateTreasuryWallet(address newAddress) public onlyOwner {
-        require(newAddress != treasuryWallet, "FRTNA: The treasury wallet already has that address");
+        require(newAddress != treasuryWallet, "NAPA: The treasury wallet already has that address");
         emit UpdateTreasuryWallet(newAddress, treasuryWallet);
         treasuryWallet = newAddress;
     }
 
      function excludeFromFees(address account, bool excluded) public onlyOwner {
-        require(isExcludedFromFees[account] != excluded, "FRTNA: Account is already the value of 'excluded'");
+        require(isExcludedFromFees[account] != excluded, "NAPA: Account is already the value of 'excluded'");
         isExcludedFromFees[account] = excluded;
 
         emit ExcludeFromFees(account, excluded);
@@ -99,13 +75,7 @@ contract NAPA is ERC20, Ownable {
     }
 
     function setAutomatedMarketMakerPair(address pair, bool value) public onlyOwner {
-        require(pair != uniswapPair, "FRTNA: The PancakeSwap pair cannot be removed from automatedMarketMakerPairs");
-
-        _setAutomatedMarketMakerPair(pair, value);
-    }
-
-    function _setAutomatedMarketMakerPair(address pair, bool value) private {
-        require(automatedMarketMakerPairs[pair] != value, "FRTNA: Automated market maker pair is already set to that value");
+        require(automatedMarketMakerPairs[pair] != value, "NAPA: Automated market maker pair is already set to that value");
         automatedMarketMakerPairs[pair] = value;
 
         emit SetAutomatedMarketMakerPair(pair, value);
@@ -120,7 +90,7 @@ contract NAPA is ERC20, Ownable {
 
     function _isSell(address from, address to) internal view returns (bool) {
         // Transfer to pair from non-router address is a sell swap
-        return from != address(uniswapRouter) && automatedMarketMakerPairs[to];
+        return from != uniswapRouter && automatedMarketMakerPairs[to];
     }
 
     function _transfer(
